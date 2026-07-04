@@ -13,14 +13,19 @@ const startServer = async () => {
   // 1. Establish secure DB connection before listening on network socket
   await connectDB();
 
-  // 2. Bind application to specified local network port
-  server = app.listen(port, () => {
-    logger.success(`🚀 ReWeara server initialized in [${env}] mode.`);
-    logger.success(`   Listening on interface: http://localhost:${port}`);
-  });
+  // 2. Bind application to specified local network port if not running in Vercel Serverless environment
+  if (!process.env.VERCEL) {
+    server = app.listen(port, () => {
+      logger.success(`🚀 ReWeara server initialized in [${env}] mode.`);
+      logger.success(`   Listening on interface: http://localhost:${port}`);
+    });
+  }
 };
 
 startServer();
+
+// Export the express application module for Vercel Serverless hosting entry
+module.exports = app;
 
 // ==========================================
 // 🛡️ UNHANDLED CRITICAL EXCEPTION MONITOR
