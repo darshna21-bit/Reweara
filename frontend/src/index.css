@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-cream: #FCF9F6;
+  --color-brand-blush: #E8C5C8;
+  --color-brand-gold: #D4AF37;
+  --color-brand-espresso: #2B2321;
+  --color-brand-dust: #8E7E7A;
+  --color-brand-sage: #C8D6C5;
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Outfit", sans-serif;
+
+  --radius-luxury: 12px;
+  --radius-soft: 8px;
+}
+
+/* Custom base overlays */
+@layer base {
+  body {
+    background-color: var(--color-brand-cream);
+    color: var(--color-brand-espresso);
+  }
+}
+
+/* Custom fade-in micro-animations for premium user experience */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
