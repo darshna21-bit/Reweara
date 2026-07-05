@@ -2,8 +2,7 @@
 
 ReWeara is a premium, fashion-tech rental platform for luxury Indian wedding outfit rentals. Designed to bring an elegant, Pinterest-inspired luxury boutique experience to outfit rentals, it provides high-end designer garments (Lehengas, Gowns, Sarees) at a fraction of their retail price, backed by a production-ready, highly secure full-stack architecture.
 
-*   **Live Demo:** [reweara-sable.vercel.app](https://reweara-sable.vercel.app)
-*   **Backend API:** [reweara-backend.vercel.app](https://reweara-backend.vercel.app)
+*   **Link:** [reweara-sable.vercel.app](https://reweara-sable.vercel.app)
 
 ---
 
