@@ -19,6 +19,9 @@ const { clientUrl, apiVersion, env } = require('./config/env');
 
 const app = express();
 
+// Trust reverse proxy headers (essential for rate limiting on Vercel)
+app.set('trust proxy', 1);
+
 // ==========================================
 // 🛡️ SECURITY & REQUEST PROCESSING MIDDLEWARES
 // ==========================================
