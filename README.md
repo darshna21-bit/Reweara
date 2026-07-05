@@ -9,14 +9,27 @@ ReWeara is a premium, fashion-tech rental platform for luxury Indian wedding out
 
 ## 📸 Interface Showroom
 
-### 👗 Curated Lehenga Rental Card
-![Premium Lehenga Rental](docs/images/premium_lehenga_rental.png)
-
-### 📊 Admin Bookings Dashboard
-![Admin Bookings Dashboard](docs/images/admin_bookings_dashboard.png)
-
-### 🛍️ Admin Outfits Management List
-![Admin Outfits List](docs/images/admin_outfits_list.png)
+<table width="100%">
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>👗 Curated Lehenga Rental Card</strong><br/><br/>
+      <img src="docs/images/premium_lehenga_rental.png" width="100%" alt="Lehenga Card"/>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <strong>📊 Admin Bookings Dashboard</strong><br/><br/>
+      <img src="docs/images/admin_bookings_dashboard.png" width="100%" alt="Bookings Dashboard"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>🛍️ Admin Outfits Management List</strong><br/><br/>
+      <img src="docs/images/admin_outfits_list.png" width="100%" alt="Outfits List"/>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <!-- Empty space for symmetry -->
+    </td>
+  </tr>
+</table>
 
 ---
 
