@@ -30,3 +30,8 @@ Thumbs.db
 
 # Testing coverage outputs
 coverage/
+
+# Repository design and interview documentation
+INTERVIEW_AND_HR_QNA.md
+PROJECT_FLOW_AND_LOGIC.md
+TECH_STACK_AND_DECISIONS.md
