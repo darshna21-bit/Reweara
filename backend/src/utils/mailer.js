@@ -9,15 +9,26 @@ const sendOtpEmail = async (email, otp) => {
 
   if (host && user && pass) {
     try {
-      const transporter = nodemailer.createTransport({
-        host,
-        port: parseInt(port, 10),
-        secure: parseInt(port, 10) === 465, // Use SSL if port is 465
+      const transportConfig = host.includes('gmail') ? {
+        service: 'gmail',
         auth: {
           user,
           pass
         }
-      });
+      } : {
+        host,
+        port: parseInt(port, 10),
+        secure: parseInt(port, 10) === 465,
+        auth: {
+          user,
+          pass
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      };
+
+      const transporter = nodemailer.createTransport(transportConfig);
 
       await transporter.sendMail({
         from: `"ReWeara Support" <${user}>`,
