@@ -485,8 +485,11 @@ export default function OutfitDetail() {
                   </div>
                   <div>
                     <span className="text-[10px] text-brand-dust uppercase tracking-wider block">Security Deposit</span>
-                    <span className="text-sm md:text-base font-semibold text-brand-espresso">
+                    <span className="text-sm md:text-base font-semibold text-brand-espresso block">
                       ₹{outfit.refundableDeposit.toLocaleString('en-IN')}
+                    </span>
+                    <span className="text-[8px] sm:text-[9px] text-[#8D4237] block mt-0.5 font-light leading-none">
+                      (not charged yet — coming soon)
                     </span>
                   </div>
                   <div className="opacity-75">

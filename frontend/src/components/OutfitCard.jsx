@@ -54,8 +54,11 @@ export default function OutfitCard({ outfit }) {
               </div>
               <div className="text-left sm:text-right">
                 <span className="text-[10px] text-brand-dust uppercase tracking-wider block">Deposit (Refundable)</span>
-                <span className="text-xs sm:text-sm font-medium text-brand-espresso">
+                <span className="text-xs sm:text-sm font-medium text-brand-espresso block">
                   ₹{outfit.refundableDeposit.toLocaleString('en-IN')}
+                </span>
+                <span className="text-[8px] text-[#8D4237] block mt-0.5 font-light leading-none">
+                  (not charged yet)
                 </span>
               </div>
             </div>
