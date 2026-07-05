@@ -54,6 +54,12 @@ ReWeara is a premium, fashion-tech rental platform for luxury Indian wedding out
 - **Signature Authenticity:** Validates webhook signatures from Razorpay via `crypto.timingSafeEqual` to prevent side-channel timing attacks.
 - **Fault-Tolerant Refunds:** Implements automated, IDOR-protected, database-logged gateway refund workflows for cancelled bookings.
 
+### 👥 5. Role-Based Access Control (RBAC)
+- **3-Tier Auth Protection:** Restricts routing and database operations using secure backend authentication guards:
+  - **Customer:** Browses/rents catalog, leaves reviews, manages personal wishlists, and tracks bookings.
+  - **Admin:** Manages catalog updates, edits sizes, and deactivates rental listings.
+  - **Super-Admin:** Performs security deposit reviews, handles manual refunds/deductions, searches users, and promotes/demotes roles.
+
 ---
 
 ## 🏗️ Decoupled System Architecture
