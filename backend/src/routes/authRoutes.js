@@ -7,6 +7,20 @@ const { authLimiter } = require('../middleware/rateLimiter');
 
 // 1. Public Authentication Entrypoints (Guarded under anti-brute rate limits)
 router.post(
+  '/signup/send-otp',
+  authLimiter,
+  validateInput('send_otp'),
+  authController.sendOtp
+);
+
+router.post(
+  '/signup/verify-otp',
+  authLimiter,
+  validateInput('verify_otp'),
+  authController.verifyOtp
+);
+
+router.post(
   '/signup',
   authLimiter,
   validateInput('signup'),

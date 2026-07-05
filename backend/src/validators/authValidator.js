@@ -57,8 +57,36 @@ const updateUserRoleSchema = z.object({
   })
 });
 
+/**
+ * Validation Schema for sending OTP
+ */
+const sendOtpSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required.' })
+    .trim()
+    .toLowerCase()
+    .email('Please provide a valid email address.')
+});
+
+/**
+ * Validation Schema for verifying OTP
+ */
+const verifyOtpSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required.' })
+    .trim()
+    .toLowerCase()
+    .email('Please provide a valid email address.'),
+  otp: z
+    .string({ required_error: 'OTP is required.' })
+    .length(6, 'OTP must be exactly 6 digits long.')
+    .regex(/^\d+$/, 'OTP must contain only digits.')
+});
+
 module.exports = {
   signupSchema,
   loginSchema,
-  updateUserRoleSchema
+  updateUserRoleSchema,
+  sendOtpSchema,
+  verifyOtpSchema
 };

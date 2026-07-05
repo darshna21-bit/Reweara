@@ -1,5 +1,11 @@
 const AppError = require('../utils/appError');
-const { signupSchema, loginSchema, updateUserRoleSchema } = require('../validators/authValidator');
+const { 
+  signupSchema, 
+  loginSchema, 
+  updateUserRoleSchema,
+  sendOtpSchema,
+  verifyOtpSchema
+} = require('../validators/authValidator');
 const { createOutfitSchema, updateOutfitSchema } = require('../validators/outfitValidator');
 const { 
   checkAvailabilitySchema, 
@@ -29,6 +35,12 @@ const validateInput = (validationType) => {
         break;
       case 'update_user_role':
         schema = updateUserRoleSchema;
+        break;
+      case 'send_otp':
+        schema = sendOtpSchema;
+        break;
+      case 'verify_otp':
+        schema = verifyOtpSchema;
         break;
       case 'create_outfit':
         schema = createOutfitSchema;

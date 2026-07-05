@@ -67,3 +67,26 @@ export const updateUserRoleApi = async (userId, role) => {
   const response = await client.patch(`/auth/admin/${userId}/role`, { role });
   return response.data;
 };
+
+/**
+ * Sends a request to dispatch a verification OTP to the target email.
+ * 
+ * @param {string} email - Target email address
+ * @returns {Promise<Object>} - Backend response payload
+ */
+export const sendOtpApi = async (email) => {
+  const response = await client.post('/auth/signup/send-otp', { email });
+  return response.data;
+};
+
+/**
+ * Sends a request to verify the OTP for the target email.
+ * 
+ * @param {string} email - Target email address
+ * @param {string} otp - The 6-digit OTP code input
+ * @returns {Promise<Object>} - Backend response payload
+ */
+export const verifyOtpApi = async (email, otp) => {
+  const response = await client.post('/auth/signup/verify-otp', { email, otp });
+  return response.data;
+};

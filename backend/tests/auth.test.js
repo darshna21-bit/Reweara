@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/models/User');
+const OtpVerification = require('../src/models/OtpVerification');
 const AuthService = require('../src/services/authService');
 const mongoose = require('mongoose');
 
@@ -33,6 +34,14 @@ describe('🔑 Authentication & Authorization Integration Tests', () => {
 
   describe('POST /api/v1/auth/signup', () => {
     it('should force role to "customer" even if a different role is supplied (privilege escalation block)', async () => {
+      // Pre-seed verified OTP record for the target email
+      await OtpVerification.create({
+        email: 'hacker@test.com',
+        otpCode: 'dummy_hash',
+        verified: true,
+        verifiedAt: new Date()
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/signup')
         .send({
@@ -54,6 +63,14 @@ describe('🔑 Authentication & Authorization Integration Tests', () => {
     });
 
     it('should successfully register a customer profile with valid details', async () => {
+      // Pre-seed verified OTP record for the target email
+      await OtpVerification.create({
+        email: 'jane@test.com',
+        otpCode: 'dummy_hash',
+        verified: true,
+        verifiedAt: new Date()
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/signup')
         .send({

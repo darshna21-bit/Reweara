@@ -26,7 +26,10 @@ const envSchema = z.object({
   // Cloudinary media CDN credentials
   CLOUDINARY_CLOUD_NAME: z.string().min(1, 'CLOUDINARY_CLOUD_NAME is required.'),
   CLOUDINARY_API_KEY: z.string().min(5, 'CLOUDINARY_API_KEY is required.'),
-  CLOUDINARY_API_SECRET: z.string().min(5, 'CLOUDINARY_API_SECRET is required.')
+  CLOUDINARY_API_SECRET: z.string().min(5, 'CLOUDINARY_API_SECRET is required.'),
+
+  // AbstractAPI Email Reputation credentials
+  ABSTRACT_EMAIL_API_KEY: z.string().min(1, 'ABSTRACT_EMAIL_API_KEY is required.')
 });
 
 // Run safe validation parsing
@@ -65,5 +68,6 @@ module.exports = {
     cloudName: validatedEnv.CLOUDINARY_CLOUD_NAME,
     apiKey: validatedEnv.CLOUDINARY_API_KEY,
     apiSecret: validatedEnv.CLOUDINARY_API_SECRET
-  }
+  },
+  abstractEmailApiKey: validatedEnv.ABSTRACT_EMAIL_API_KEY
 };

@@ -1,10 +1,12 @@
 const User = require('../models/User');
+const OtpVerification = require('../models/OtpVerification');
 const AuthService = require('../services/authService');
 const AppError = require('../utils/appError');
 const asyncHandler = require('../utils/asyncHandler');
-const { env } = require('../config/env');
+const { env, abstractEmailApiKey } = require('../config/env');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 /**
  * Helper utility to attach refresh token inside an httpOnly cookie
@@ -111,17 +113,33 @@ const sendTokensResponse = async (user, statusCode, res, message, oldTokenId = n
  */
 exports.signup = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone } = req.body;
+  const lowercaseEmail = email.toLowerCase().trim();
 
   // 1. Assert email is unique before creation
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  const existingUser = await User.findOne({ email: lowercaseEmail });
   if (existingUser) {
     return next(new AppError('A user profile already exists with this email address.', 409));
   }
 
-  // 2. Safe register profile
+  // 2. Enforce OTP verification within the last 15 minutes
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+  const verifiedRecord = await OtpVerification.findOne({
+    email: lowercaseEmail,
+    verified: true,
+    verifiedAt: { $gte: fifteenMinutesAgo }
+  });
+
+  if (!verifiedRecord) {
+    return next(new AppError('Email verification required. Please verify your email via OTP before signing up.', 400));
+  }
+
+  // 3. Delete the verification record to prevent replay attacks
+  await OtpVerification.deleteOne({ _id: verifiedRecord._id });
+
+  // 4. Safe register profile
   const user = await User.create({
     name,
-    email,
+    email: lowercaseEmail,
     password,
     phone,
     role: 'customer' // Hardcoded to customer to prevent privilege escalation
@@ -401,6 +419,151 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
     data: {
       users
     }
+  });
+});
+
+/**
+ * @desc    Generate and send signup verification OTP after AbstractAPI deliverability pre-check
+ * @route   POST /api/v1/auth/signup/send-otp
+ * @access  Public
+ */
+exports.sendOtp = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const lowercaseEmail = email.toLowerCase().trim();
+
+  // 1. Assert email is unique before sending OTP
+  const existingUser = await User.findOne({ email: lowercaseEmail });
+  if (existingUser) {
+    return next(new AppError('A user profile already exists with this email address.', 409));
+  }
+
+  // 2. AbstractAPI Email Reputation Validation Check
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  try {
+    const abstractUrl = `https://emailreputation.abstractapi.com/v1/?api_key=${abstractEmailApiKey}&email=${encodeURIComponent(lowercaseEmail)}`;
+    const response = await fetch(abstractUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      logger.info(`AbstractAPI response for ${lowercaseEmail}: ${JSON.stringify(data)}`);
+
+      if (data.email_deliverability?.status === 'undeliverable') {
+        return next(new AppError("This email address doesn't appear to exist. Please check and try again.", 400));
+      }
+      if (data.email_quality?.is_disposable === true) {
+        return next(new AppError("Temporary/disposable email addresses aren't allowed. Please use a permanent email.", 400));
+      }
+      if (data.email_risk?.address_risk_status === 'high') {
+        return next(new AppError("This email address couldn't be verified. Please use a different one.", 400));
+      }
+    } else {
+      logger.error(`AbstractAPI returned error status: ${response.status}`);
+    }
+  } catch (err) {
+    clearTimeout(timeoutId);
+    logger.error(`AbstractAPI Reputation Check failed/timed out: ${err.message}`);
+    // Graceful degradation: do NOT block the user
+  }
+
+  // 3. Database Rate Limiting: Max 3 OTP requests per email within 10 minutes
+  const now = new Date();
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+  let otpRecord = await OtpVerification.findOne({ email: lowercaseEmail });
+  let requests = [];
+  if (otpRecord) {
+    requests = (otpRecord.requestsWithinWindow || []).filter((reqTime) => reqTime > tenMinutesAgo);
+    if (requests.length >= 3) {
+      return next(new AppError('Too many requests. You can request up to 3 OTP codes every 10 minutes.', 429));
+    }
+  }
+
+  // 4. Generate random 6-digit OTP code
+  const rawOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+  // 5. Hash the OTP using bcrypt
+  const hashedOtp = await bcrypt.hash(rawOtp, 10);
+
+  // 6. Record timestamp and upsert OtpVerification record
+  requests.push(now);
+
+  if (otpRecord) {
+    otpRecord.otpCode = hashedOtp;
+    otpRecord.attempts = 0;
+    otpRecord.createdAt = now;
+    otpRecord.verified = false;
+    otpRecord.requestsWithinWindow = requests;
+    await otpRecord.save();
+  } else {
+    await OtpVerification.create({
+      email: lowercaseEmail,
+      otpCode: hashedOtp,
+      attempts: 0,
+      createdAt: now,
+      verified: false,
+      requestsWithinWindow: requests
+    });
+  }
+
+  // 7. Dispatch the OTP via Nodemailer utility
+  const { sendOtpEmail } = require('../utils/mailer');
+  await sendOtpEmail(lowercaseEmail, rawOtp);
+
+  res.status(200).json({
+    success: true,
+    message: 'Verification OTP has been sent successfully.'
+  });
+});
+
+/**
+ * @desc    Verify signup OTP code matches
+ * @route   POST /api/v1/auth/signup/verify-otp
+ * @access  Public
+ */
+exports.verifyOtp = asyncHandler(async (req, res, next) => {
+  const { email, otp } = req.body;
+  const lowercaseEmail = email.toLowerCase().trim();
+
+  const otpRecord = await OtpVerification.findOne({ email: lowercaseEmail });
+  if (!otpRecord) {
+    return next(new AppError('Verification OTP expired or not requested. Please request a new code.', 400));
+  }
+
+  // Check attempt thresholds
+  if (otpRecord.attempts >= 5) {
+    return next(new AppError('Too many failed attempts. Please request a new OTP.', 400));
+  }
+
+  // Check 5-minute expiry limits
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  if (otpRecord.createdAt < fiveMinutesAgo) {
+    return next(new AppError('Verification OTP has expired. Please request a new code.', 400));
+  }
+
+  // Cryptographically compare the codes
+  const isMatch = await bcrypt.compare(otp, otpRecord.otpCode);
+  if (!isMatch) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+
+    const remaining = 5 - otpRecord.attempts;
+    if (remaining <= 0) {
+      return next(new AppError('Too many failed attempts. This OTP has been locked. Please request a new code.', 400));
+    }
+    return next(new AppError(`Invalid verification code. You have ${remaining} attempts remaining.`, 400));
+  }
+
+  // Successful verification
+  otpRecord.verified = true;
+  otpRecord.verifiedAt = new Date();
+  otpRecord.attempts = 0;
+  await otpRecord.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Email address verified successfully.'
   });
 });
 
